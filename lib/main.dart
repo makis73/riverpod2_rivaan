@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod2_rivaan/home_page.dart';
+import 'package:http/http.dart' as http;
+import 'package:riverpod2_rivaan/user.dart';
 
+final fetchUserProvider = FutureProvider(((ref) {
+  final userRepository = ref.watch(userRepositoryProvider);
+  return userRepository.fetchUserData();
+}));
+
+final streamCounter = StreamProvider(
+  (ref) {
+    final counter = ref.watch(streamProvider);
+    return counter.timedCounter();
+  },
+);
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));

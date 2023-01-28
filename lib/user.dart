@@ -2,36 +2,37 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 class User {
   final String name;
-  final int age;
+  final String email;
   const User({
     required this.name,
-    required this.age,
+    required this.email,
   });
 
   User copyWith({
     String? name,
-    int? age,
+    String? email,
   }) {
     return User(
       name: name ?? this.name,
-      age: age ?? this.age,
+      email: email ?? this.email,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'name': name,
-      'age': age,
+      'email': email,
     };
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       name: map['name'] as String,
-      age: map['age'] as int,
+      email: map['email'] as String,
     );
   }
 
@@ -41,27 +42,55 @@ class User {
       User.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  String toString() => 'User(name: $name, age: $age)';
+  String toString() => 'User(name: $name, email: $email)';
 
   @override
   bool operator ==(covariant User other) {
     if (identical(this, other)) return true;
 
-    return other.name == name && other.age == age;
+    return other.name == name && other.email == email;
   }
 
   @override
-  int get hashCode => name.hashCode ^ age.hashCode;
+  int get hashCode => name.hashCode ^ email.hashCode;
 }
 
-class UserNotifier extends StateNotifier<User> {
-  UserNotifier(super.state);
+final userRepositoryProvider = Provider((ref) => UserRepository());
 
-  void updateName(String n) {
-    state = state.copyWith(name: n);
-  }
+class UserRepository {
+  Future<User> fetchUserData() {
+    const url = 'https://jsonplaceholder.typicode.com/users/1';
 
-  void updateAge(int a) {
-    state = state.copyWith(age: a);
+    return http.get(Uri.parse(url)).then((value) => User.fromJson(value.body));
   }
 }
+
+// Do this in order to avoid call the [StramRepository] class all the time. 
+// The streamProvider will cach the class.
+final streamProvider = Provider((ref) => StreamRepository());
+
+class StreamRepository {
+  Stream<int> timedCounter() async* {
+    print('STreamRepository called!!!');
+    int i = 0;
+    while (true) {
+      await Future.delayed(const Duration(seconds: 1));
+      yield i++;
+      if (i == 10) break;
+    }
+  }
+}
+
+
+
+// class UserNotifier extends StateNotifier<User> {
+//   UserNotifier(super.state);
+
+//   void updateName(String n) {
+//     state = state.copyWith(name: n);
+//   }
+
+//   void updateAge(String e) {
+//     state = state.copyWith(email: e);
+//   }
+// }
